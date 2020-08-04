@@ -1,4 +1,5 @@
 import { 
+    RecordData,
     DeleteRecordResponse, 
     QueryRecordData, 
     QueryRecordDataResponse,
@@ -9,10 +10,8 @@ class Records {
 
     private url: string
     private queryUrl: string
-    // private headers: object
     
-    constructor(headers) {
-        // this.headers = headers
+    constructor() {
         this.url = "https://api.quickbase.com/v1/records"
         this.queryUrl = "https://api.quickbase.com/v1/records/query"
     }
@@ -34,9 +33,22 @@ class Records {
         })
     }
 
-    update = async (rids: number[], data: RecordData): Promise<UpdateCreateRecordResponse> => {
+    update = async (to: string, data: RecordData[], headers: object, fidRid?: number): Promise<UpdateCreateRecordResponse> => {
+        let recordData = await this.updateDataHandler(data, fidRid)
+
         return new Promise((resolve, reject) => {
-            fetch(this.url)
+            fetch(this.url, {
+                method: "POST",
+                mode: "cors",
+                headers: headers as HeadersInit,
+                body: JSON.stringify({ to, recordData }),
+            }).then((res: Response) => {
+                return res.json()
+            }).then((res: UpdateCreateRecordResponse) => {
+                resolve(res)
+            }).catch((err: Error) => {
+                reject(err)
+            })
         })
     }
 
@@ -74,4 +86,25 @@ class Records {
         })
     }
 
+    updateDataHandler = async (data: RecordData[], fidRid?: number): Promise<object[]> => {
+        let postData: object[] = [] as object[]
+        let rid = !fidRid ? 3 : fidRid
+
+
+        return new Promise((resolve, reject) => {
+            data.forEach(element => {
+                postData.push({ 
+                    [rid]: {value: element.rid}
+                })
+                element.fields.forEach(el => {
+                    postData[postData.length-1][el.fid] = { value: el.value }
+                });
+            })
+    
+            resolve(postData)
+        })
+    }
+
 }
+
+export default new Records()

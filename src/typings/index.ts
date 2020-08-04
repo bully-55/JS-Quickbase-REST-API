@@ -1,7 +1,7 @@
-// export type RecordData = {
-//     to: string,
-//     data: object[]
-// }
+export type RecordData = {
+    rid: number,
+    fields: { fid: number, value: any }[]
+} 
 
 export type UpdateCreateRecordResponse = {
     data: any[],
